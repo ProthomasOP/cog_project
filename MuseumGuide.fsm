@@ -1,0 +1,149 @@
+from aim_fsm import *
+
+new_preamble = """
+  You are an intelligent mobile robot named Celeste.
+  You have a plastic cylindrical body with a diameter of 65 mm and a height of 72 mm.
+  You have three omnidirectional wheels and a forward-facing camera.
+  You converse with humans and answer questions as concisely as possible.
+  Here is how to control your body:
+  To move forward by N millimeters, output the string "#forward N" without quotes.
+  To move to the left by N milllimeters, output the string "#sideways N" without quotes, and use a negative value to move right.
+  To turn counter-clockwise by N degrees, output the string "#turn N" without quotes, and use a negative value for clockwise turns.
+  To turn toward object X, output the string "#turntoward X" without quotes.
+  To pick up object X, output the string "#pickup X" without quotes.
+  To drop an object, output the string "#drop" without quotes.
+  To glow your LEDs a specified color, look up the RGB code for that color and output the string "#glow R G B" without quotes.  To obtain the current camera image, output the string '#camera" without quotes.
+  To pass through a doorway, output the string "#doorpass D" without quotes, where D is the full name of the doorway.
+  When using any of these # commands, the command must appear on a line by itself, with nothing preceding it.
+  When asked what you see in the camera, first obtain the current camera image, then answer the question after receiving the image.
+  Pronounce "AprilTag-1.a" as "April Tag 1-A", and similarly for any word of form "AprilTag-N.x".
+  Pronounce "OrangeBarrel.a" as "Orange Barrel A", pronounce "BlueBarrel.b" as "Blue Barrel B", and similarly for other barrel designators.
+  Prounounce "ArucoMarkerObj-2.a" as "Marker 2".
+  Pronounce 'Wall-2.a' as "Wall 2".
+  Pronounce "Doorway-2:0.a" as "Doorway 2".
+  Only objects you are explicitly told are landmarks should be regarded as landmarks.
+  Remember to be concise in your answers.  Do not generate lists unless specifically asked to do so; just give one item and offer to provide more if requested.
+  Do not include any formatting in your output, such as asterisks or LaTex commands.  Just use plain text.
+"""
+
+class MuseumGuide(StateMachineProgram):
+
+    class CheckResponse(StateNode):
+        def start(self, event):
+            super().start(event)
+            response_string = event.response
+            lines = list(filter(lambda x: len(x)>0, response_string.split('\n')))
+            # If the response contains any #command lines then convert
+            # raw text lines to #say commands.
+            if any((line.startswith('#') for line in lines)):
+                commands = [line if line.startswith('#') else ('#say ' + line) for line in lines]
+                print(commands)
+                self.post_data(commands)
+            # else response is a pure string so just speak it in one gulp
+            else:
+                self.post_data(response_string)
+
+    class CmdForward(Forward):
+      def start(self,event):
+          print(event.data)
+          self.distance_mm = float((event.data.split(' '))[1])
+          super().start(event)
+
+    class CmdSideways(Sideways):
+      def start(self,event):
+          print(event.data)
+          self.distance_mm = float((event.data.split(' '))[1])
+          super().start(event)
+
+    class CmdTurn(Turn):
+      def start(self,event):
+          print(event.data)
+          self.angle_deg = float((event.data.split(' '))[1])
+          super().start(event)
+
+    class CmdTurnToward(TurnToward):
+        def start(self,event):
+            print(event.data)
+            spec = event.data.split(' ')
+            self.object_spec  = ''.join(spec[1:])
+            print('Turning toward', self.object_spec)
+            super().start(None)
+
+    class CmdPickup(PickUp):
+      def start(self,event):
+          print(event.data)
+          spec = event.data.split(' ')
+          self.object_spec = ''.join(spec[1:])
+          print('Picking up', self.object_spec)
+          super().start(None)
+
+    class CmdDrop(Drop):
+      def start(self,event):
+          print(event.data)
+          super().start(event)
+
+    class CmdSendCamera(SendGPTCamera):
+        def start(self,event):
+            print(event.data)
+            super().start(event)
+
+    class CmdSay(Say):
+        def start(self,event):
+            print('#say ...')
+            self.text = event.data[5:]
+            super().start(event)
+
+    class CmdGlow(Glow):
+        def start(self,event):
+            print(f"CmdGlow:  '{event.data}'")
+            spec = event.data.split(' ')
+            if len(spec) != 4:
+                self.args = (vex.LightType.ALL, vex.Color.TRANSPARENT)
+            try:
+                (r, g, b) = (int(x) for x in spec[1:])
+                self.args = (vex.LightType.ALL, r, g, b)
+            except:
+                self.args = (vex.LightType.ALL, vex.Color.TRANSPARENT)
+            super().start(event)
+
+    class SpeakResponse(Say):
+      def start(self,event):
+        self.text = event.data
+        super().start(event)
+        
+    def start(self):
+        self.robot.openai_client.set_preamble(new_preamble)
+        super().start()
+
+    $setup{
+      Say("Talk to me") =C=> loop
+
+      loop: StateNode() =Hear()=> AskGPT() =OpenAITrans()=> check
+
+      check: self.CheckResponse()
+      check =D(list)=> dispatch
+      check =D(str)=> self.SpeakResponse() =C=> loop
+
+      dispatch: Iterate()
+      dispatch =D(re.compile('#say '))=> self.CmdSay() =CNext=> dispatch
+      dispatch =D(re.compile('#forward '))=> self.CmdForward() =CNext=> dispatch
+      dispatch =D(re.compile('#sideways '))=> self.CmdSideways() =CNext=> dispatch
+      dispatch =D(re.compile('#turn '))=> self.CmdTurn() =CNext=> dispatch
+      dispatch =D(re.compile('#turntoward '))=> turntoward
+      dispatch =D(re.compile('#drop$'))=> self.CmdDrop() =CNext=> dispatch
+      dispatch =D(re.compile('#pickup '))=> pickup
+      dispatch =D(re.compile('#glow '))=> self.CmdGlow() =CNext=> dispatch
+      dispatch =D(re.compile('#camera$'))=> self.CmdSendCamera() =C=>
+        AskGPT("Please respond to the query using the camera image.") =OpenAITrans()=> check
+      dispatch =D()=> Print() =Next=> dispatch
+      dispatch =C=> loop
+
+      turntoward: self.CmdTurnToward()
+      turntoward =CNext=> dispatch
+      turntoward =F=> StateNode() =Next=> dispatch
+
+      pickup: self.CmdPickup()
+      pickup =CNext=> dispatch
+      pickup =F=> StateNode() =Next=> dispatch
+
+      }
