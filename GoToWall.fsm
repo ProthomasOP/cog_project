@@ -1,0 +1,37 @@
+from aim_fsm import *
+from math import atan2, degrees
+import numpy as np
+
+class GotoWallOne(StateMachineProgram):
+
+    class ArucoSearch(StateNode):
+        def start(self, event=None):
+            super().start(event)
+            aruco1 = False
+            aruco2 = False
+            aruco3 = False
+            aruco4 = False
+            world_objects = self.robot.world_map.objects  
+            aruco_markers = [obj for obj in world_objects.values() if isinstance(obj, ArucoMarkerObj)]
+            
+            for obj in aruco_markers:
+                if obj.name == "ArucoMarker-5" and obj.is_visible:
+                    aruco5 = True
+                if obj.name == "ArucoMarker-6" and obj.is_visible:
+                    aruco6 = True
+
+            if aruco5 and not aruco6:
+                self.post_data(0)
+            elif not aruco5 and aruco6:
+                self.post_data(1)
+            elif aruco5 and aruco6:
+                ThroughTheDoor.cordx, ThroughTheDoor.cordy = ThroughTheDoor.calcwaypoint(self.robot)
+                self.post_data(2)         
+
+    class TurnToLeftSide(StateNode): 
+        
+    class TurnToRightSide(StateNode):
+
+
+
+

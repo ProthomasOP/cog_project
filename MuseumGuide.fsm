@@ -16,6 +16,9 @@ new_preamble = """
   To pass through a doorway, output the string "#doorpass D" without quotes, where D is the full name of the doorway.
   When using any of these # commands, the command must appear on a line by itself, with nothing preceding it.
   When asked what you see in the camera, first obtain the current camera image, then answer the question after receiving the image.
+  
+  You are a museum guide, a museum is built inside two rooms with different paintings on the wall. You will have to present and talk about these paintings you see. 
+  
   Pronounce "AprilTag-1.a" as "April Tag 1-A", and similarly for any word of form "AprilTag-N.x".
   Pronounce "OrangeBarrel.a" as "Orange Barrel A", pronounce "BlueBarrel.b" as "Blue Barrel B", and similarly for other barrel designators.
   Prounounce "ArucoMarkerObj-2.a" as "Marker 2".
@@ -106,6 +109,40 @@ class MuseumGuide(StateMachineProgram):
                 self.args = (vex.LightType.ALL, vex.Color.TRANSPARENT)
             super().start(event)
 
+    class CmdDoorPass(DoorPass):
+        def start(self, event):
+            print(event.data)
+            tokens = event.data.split()
+            if len(tokens) < 2:
+                print("No doorway specified after '#doorpass'")
+                self.post_failure()
+                return
+            
+            doorway_name = tokens[1]
+            print(f"Attempting to pass through doorway: {doorway_name}")
+            super().start(DataEvent(doorway_name))
+
+    class CmdPilotToAruco(PilotToObject):
+        def start(self, event):
+            tokens = event.data.spilt()
+            if len(tokens) < 2:
+                print("No marker ID after '#pilottoaruco'")
+                self.post_failure()
+                return
+            
+            arg = tokens[1]
+            obj_id = f"ArucoMarker-{arg}" if not arg.startswith("ArucoMarker-") else arg
+            world_map = self.robot.world_map
+            marker = world_map.objects.get(obj_id)
+            
+            if marker is None or not isinstance(marker, ArucoMarkerObj):
+                print(f"No such ArUco marker in world_map: {obj_id}")
+                self.post_failure()
+                return
+
+            print(f"Piloting directly to ArUco marker {obj_id} at {marker.pose}")
+            super().start(DataEvent(marker))
+    
     class SpeakResponse(Say):
       def start(self,event):
         self.text = event.data
@@ -133,6 +170,8 @@ class MuseumGuide(StateMachineProgram):
       dispatch =D(re.compile('#drop$'))=> self.CmdDrop() =CNext=> dispatch
       dispatch =D(re.compile('#pickup '))=> pickup
       dispatch =D(re.compile('#glow '))=> self.CmdGlow() =CNext=> dispatch
+      dispatch =D(re.compile('#doorpass '))=> doorpass  
+      dispatch =D(re.compile('#pilottoaruco '))=> goto_aruco
       dispatch =D(re.compile('#camera$'))=> self.CmdSendCamera() =C=>
         AskGPT("Please respond to the query using the camera image.") =OpenAITrans()=> check
       dispatch =D()=> Print() =Next=> dispatch
@@ -145,5 +184,14 @@ class MuseumGuide(StateMachineProgram):
       pickup: self.CmdPickup()
       pickup =CNext=> dispatch
       pickup =F=> StateNode() =Next=> dispatch
+
+      doorpass: self.CmdDoorPass()
+      doorpass =CNext=> dispatch
+      doorpass =F=> Say("Could not pass through that doorway.") =CNext=> dispatch
+
+      goto_aruco: self.CmdPilotToAruco()
+      goto_aruco =CNext=> dispatch
+      goto_aruco =F=> Say("Could not find that marker.") =CNext=> dispatch
+      goto_aruco =PILOT(GoalUnreachable)=> Say("That marker is unreachable.") =CNext=> dispatch
 
       }
