@@ -124,6 +124,7 @@ class MuseumGuide(StateMachineProgram):
             print(f"Attempting to pass through doorway: {doorway_name}")
             super().start(DataEvent(doorway_name))
 
+
     class CmdPilotToAruco(PilotToPose):
         def start(self, event):
             tokens = event.data.split()
@@ -142,12 +143,13 @@ class MuseumGuide(StateMachineProgram):
                 self.post_failure()
                 return
 
-            offset_dist = 100  
+            offset_dist = -100  
+            heading = self.robot.pose.theta 
             theta = marker.pose.theta
             offset_x = marker.pose.x - offset_dist * math.cos(theta)
             offset_y = marker.pose.y - offset_dist * math.sin(theta)
 
-            offset_pose = Pose(offset_x, offset_y, theta=theta)
+            offset_pose = Pose(offset_x, offset_y, theta=heading)
             print(f"Piloting to offset pose near ArUco marker {obj_id}: {offset_pose}")
             super().start(DataEvent(offset_pose))
 
