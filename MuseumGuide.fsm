@@ -14,6 +14,8 @@ new_preamble = """
   To drop an object, output the string "#drop" without quotes.
   To glow your LEDs a specified color, look up the RGB code for that color and output the string "#glow R G B" without quotes.  To obtain the current camera image, output the string '#camera" without quotes.
   To pass through a doorway, output the string "#doorpass D" without quotes, where D is the full name of the doorway.
+  To move toward a specific ArUco marker, output the string "#pilottoaruco N" without quotes, where N is the marker number. For example, to move to marker 2, say "#pilottoaruco 2".  
+  
   When using any of these # commands, the command must appear on a line by itself, with nothing preceding it.
   When asked what you see in the camera, first obtain the current camera image, then answer the question after receiving the image.
   
