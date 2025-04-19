@@ -124,16 +124,16 @@ class MuseumGuide(StateMachineProgram):
             print(f"Attempting to pass through doorway: {doorway_name}")
             super().start(DataEvent(doorway_name))
 
-    class CmdPilotToAruco(PilotToObject):
+    class CmdPilotToAruco(PilotToPose):
         def start(self, event):
-            tokens = event.data.spilt()
+            tokens = event.data.split()
             if len(tokens) < 2:
                 print("No marker ID after '#pilottoaruco'")
                 self.post_failure()
                 return
             
             arg = tokens[1]
-            obj_id = f"ArucoMarker-{arg}" if not arg.startswith("ArucoMarker-") else arg
+            obj_id = f"ArucoMarker-{arg}.a" if not arg.startswith("ArucoMarker-") else arg
             world_map = self.robot.world_map
             marker = world_map.objects.get(obj_id)
             
@@ -142,9 +142,15 @@ class MuseumGuide(StateMachineProgram):
                 self.post_failure()
                 return
 
-            print(f"Piloting directly to ArUco marker {obj_id} at {marker.pose}")
-            super().start(DataEvent(marker))
-    
+            offset_dist = 100  
+            theta = marker.pose.theta
+            offset_x = marker.pose.x - offset_dist * math.cos(theta)
+            offset_y = marker.pose.y - offset_dist * math.sin(theta)
+
+            offset_pose = Pose(offset_x, offset_y, theta=theta)
+            print(f"Piloting to offset pose near ArUco marker {obj_id}: {offset_pose}")
+            super().start(DataEvent(offset_pose))
+
     class SpeakResponse(Say):
       def start(self,event):
         self.text = event.data
@@ -155,7 +161,7 @@ class MuseumGuide(StateMachineProgram):
         super().start()
 
     $setup{
-      Say("Talk to me") =C=> loop
+      Say("Very nice to meet you. I am this art museum's guide.") =C=> loop
 
       loop: StateNode() =Hear()=> AskGPT() =OpenAITrans()=> check
 
