@@ -21,7 +21,7 @@ def make_walls():
                   )
 
     w2 = WallSpec(length=293, height=187, 
-                  maker_specs = { 1 : {'side': +1, 'x':  28, 'y': 26},
+                  marker_specs = { 1 : {'side': +1, 'x':  28, 'y': 26},
                                   2 : {'side': +1, 'x':  78, 'y': 27},
                                   3 : {'side': +1, 'x': 207, 'y': 26},
                                   4 : {'side': +1, 'x': 259, 'y': 26},
