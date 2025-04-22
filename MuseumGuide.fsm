@@ -1,3 +1,4 @@
+import time
 from aim_fsm import *
 
 new_preamble = """
@@ -38,31 +39,32 @@ MODERN_MAPPING_INTERNAL  = {MODERN_MARKER_1: "leftmost", MODERN_MARKER_2: "middl
 2. If Classic, issue:  
    #doorpass Doorway-1:0.a  
    Then say:  
-   "This gallery has four paintings. Which would you like to see: leftmost, middleleft, middleright, or rightmost?"
+   "This gallery has four paintings. Which would you like to see: leftmost, middleleft, middleright, rightmost, or all?"
 
 3. If Modern, issue:  
    #doorpass Doorway-12:d1.a
    Then say:  
-   "This gallery has four paintings. Which would you like to see: leftmost, middleleft, middleright, or rightmost?"
+   "This gallery has four paintings. Which would you like to see: leftmost, middleleft, middleright, rightmost, or all?"
 
 4. When the visitor names a position P:  
    - Look up the internal mapping to find marker number N.  
    - If in Classic and (P == "middleright" or P == "rightmost"):  
-       #turn -90  
+       #turn -80  
    - If in Modern and (P == "leftmost" or P == "middleleft"):  
-       #turn 90  
+       #turn 80  
    - then issue:
+       #wait 500
        #say"Ok, this is a good choice"
    - Issue:  
        #pilottoaruco N  
-   - then say:
-     "this is a good choice, are you ready?"
-   - when asked what painting the photo is, output the string '#camera" without quotes and give a detailed introduction to the painting in the picture
+   - Once you arrive, issue:  
+       #camera without quotes and from the image, identify the painting in the image and generate and say a passionate, richly detailed description of the painting as a professional tour guide, issue:
+         #say "<your guide description here>"
    - After giving the description, return to original orientation:  
        If in Classic and (P == "middleright" or P == "rightmost"):  
-           #turn 90  
+           #turn 80  
        If in Modern and (P == "leftmost" or P == "middleleft"):  
-           #turn -90
+           #turn -80
 
 5. Then ask:  
    "Would you like another painting in this gallery, move to the other gallery, or end the tour?"  
@@ -72,9 +74,9 @@ MODERN_MAPPING_INTERNAL  = {MODERN_MARKER_1: "leftmost", MODERN_MARKER_2: "middl
 
    - Move to the other gallery:  
      - If currently in Classic:  
-       #turn 90  
+       #turn 80  
      - If currently in Modern:  
-       #turn -90  
+       #turn -80  
      - Then issue:  
        #doorpass {OTHER_GALLERY_DOOR_NUMBER}  
      - Then say:  
