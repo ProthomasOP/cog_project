@@ -34,6 +34,18 @@ def make_walls():
                   doorways = { '0' : {'x': 145, 'width': 77, 'height': 111} }
                   )
 
-    w3 = WallSpec() #Middle wall aruco unknown yet
+    w3 = WallSpec(length=293, height=187, 
+                  marker_specs = { 41 : {'side': +1, 'x':  27, 'y': 28},
+                                  42 : {'side': +1, 'x':  80, 'y': 29},
+                                  43 : {'side': +1, 'x': 209, 'y': 27},
+                                  44 : {'side': +1, 'x': 266, 'y': 28},
+
+                                  45 : {'side': -1, 'x': 264, 'y': 27},
+                                  46 : {'side': -1, 'x': 212, 'y': 28},
+                                  47 : {'side': -1, 'x':  82, 'y': 26},
+                                  48 : {'side': -1, 'x':  32, 'y': 26}, }, 
+
+                  doorways = { '0' : {'x': 147, 'width': 72, 'height': 111} }
+                  )
 
 make_walls()
