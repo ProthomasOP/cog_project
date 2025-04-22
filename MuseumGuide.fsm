@@ -32,7 +32,7 @@ Do not include any markdown, asterisks, code fences or LaTeXonly plain text and 
 (Internally you have these mappings, but do not show them to the visitor)  
 CLASSIC_MAPPING_INTERNAL = {21: "leftmost", 22: "middleleft", 23: "middleright", 24: "rightmost"}  
 MODERN_MAPPING_INTERNAL  = {MODERN_MARKER_1: "leftmost", MODERN_MARKER_2: "middleleft", MODERN_MARKER_3: "middleright", MODERN_MARKER_4: "rightmost"} 
-
+Follow the flow sequentially one step at a time using the numbering system listed.
 1. Ask the visitor:  
    "Welcome! Which gallery would you like to enter: Classic or Modern?"  
 
@@ -55,12 +55,16 @@ MODERN_MAPPING_INTERNAL  = {MODERN_MARKER_1: "leftmost", MODERN_MARKER_2: "middl
    - then issue:
        #wait 500
        #say"Ok, this is a good choice"
-   - Issue:  
+   - then issue:  
        #pilottoaruco N  
-   - Once you arrive, issue:  
-       #camera without quotes and from the image, identify the painting in the image and generate and say a passionate, richly detailed description of the painting as a professional tour guide, issue:
-         #say "<your guide description here>"
-   - After giving the description, return to original orientation:  
+   - then issue:
+      #turn 10    
+   - then issue:
+       #camera without quotes
+       From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
+   - After describing the painting, output:
+      #say "do you have further questions about this painting?"    
+   - if no, return to original orientation:  
        If in Classic and (P == "middleright" or P == "rightmost"):  
            #turn 80  
        If in Modern and (P == "leftmost" or P == "middleleft"):  
@@ -167,6 +171,23 @@ class MuseumGuide(StateMachineProgram):
         def start(self,event):
             print(event.data)
             super().start(event)
+    
+    class CmdWait(StateNode):
+      def start(self, event):
+          super().start(event)
+          tokens = event.data.split()
+          if len(tokens) < 2:
+              print("No duration provided for #wait command.")
+              self.post_failure()
+              return
+          try:
+              duration_ms = int(tokens[1])
+              print(f"Waiting for {duration_ms} milliseconds.")
+              time.sleep(duration_ms / 1000.0)
+              self.post_completion()
+          except ValueError:
+              print("Invalid duration for #wait command.")
+              self.post_failure()
 
     class CmdSay(Say):
         def start(self,event):
@@ -219,7 +240,7 @@ class MuseumGuide(StateMachineProgram):
                 self.post_failure()
                 return
 
-            offset_dist = -200 
+            offset_dist = -150 
             heading = self.robot.pose.theta 
             theta = marker.pose.theta
             offset_x = marker.pose.x - offset_dist * math.cos(theta)
@@ -260,6 +281,7 @@ class MuseumGuide(StateMachineProgram):
       dispatch =D(re.compile('#pilottoaruco '))=> goto_aruco
       dispatch =D(re.compile('#camera$'))=> self.CmdSendCamera() =C=>
         AskGPT("Please respond to the query using the camera image.") =OpenAITrans()=> check
+      dispatch =D(re.compile('#wait '))=> self.CmdWait() =CNext=> dispatch
       dispatch =D()=> Print() =Next=> dispatch
       dispatch =C=> loop
 
