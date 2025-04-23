@@ -57,7 +57,7 @@ Follow the flow sequentially one step at a time using the numbering system liste
   
     - # Execute the scanning sequence for selected_flow:
           IF selected_flow == Left-to-Right Flow:
-            #turn 75  
+            #turn 60  
             then issue: #pilottoaruco N (leftmost aruco marker in whichever gallery)
             then issue: #turn 10    
             then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
@@ -75,7 +75,7 @@ Follow the flow sequentially one step at a time using the numbering system liste
             After describing the painting, output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "we have completed the tour for this gallery".  
             then issue: #forward -{test_distance}. Move on to step 5.
           IF selected_flow == Right-to-Left Flow:
-            #turn -75
+            #turn -60
             then issue: #pilottoaruco N (rightmost aruco marker in whichever gallery)
             then issue: #turn 10 
             then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
@@ -94,9 +94,9 @@ Follow the flow sequentially one step at a time using the numbering system liste
             then issue: #forward -{test_distance}. Proceed to step 5.
               
    - If in Classic and (P == "middleright" or P == "rightmost"):  
-       #turn -75  
+       #turn -60 
    - If in Modern and (P == "leftmost" or P == "middleleft"):  
-       #turn 75  
+       #turn 60  
    - then issue:  
        #pilottoaruco N  
    - then issue:
@@ -244,51 +244,72 @@ class MuseumGuide(StateMachineProgram):
             doorway_name = tokens[1]
             print(f"Attempting to pass through doorway: {doorway_name}")
             super().start(DataEvent(doorway_name))
-    
-    class CmdPilotToAruco(PilotToPose):
-        def start(self, event):
-            tokens = event.data.split()
-            if len(tokens) < 2:
-                print("No marker ID after '#pilottoaruco'")
-                self.post_failure()
-                return
 
-            arg = tokens[1]
-            obj_id = f"ArucoMarker-{arg}.a" if not arg.startswith("ArucoMarker-") else arg
-            world_map = self.robot.world_map
-            marker = world_map.objects.get(obj_id)
-            
-            if marker is None or not isinstance(marker, ArucoMarkerObj):
-                print(f"No such ArUco marker in world_map: {obj_id}")
-                self.post_failure()
-                return
-
-            offset_dist = -150 
-            heading = self.robot.pose.theta 
-            theta = marker.pose.theta
-            offset_x = marker.pose.x - offset_dist * math.cos(theta)
-            offset_y = marker.pose.y - offset_dist * math.sin(theta)
-
-            offset_pose = Pose(offset_x, offset_y, theta=heading)
-            print(f"Piloting to offset pose near ArUco marker {obj_id}: {offset_pose}")
-            super().start(DataEvent(offset_pose))
-
-    class WaitThenGotoAruco(StateNode):
+    class CmdPilotToAruco(StateNode):
         def start(self, event):
             self.saved_data = event.data
+            print(event.data)
             super().start(event)
+            
+        class GoToAruco(PilotToPose):
+          def start(self, event=None):
+              saved_data = self.parent.saved_data
+              print("started go to aruco")
+              tokens = saved_data.split()
+              
+              if len(tokens) < 2:
+                  print("No marker ID after '#pilottoaruco'")
+                  super().start()
+                  self.post_failure()
+                  return
+
+              arg = tokens[1]
+              obj_id = f"ArucoMarker-{arg}.a" if not arg.startswith("ArucoMarker-") else arg
+              world_map = self.robot.world_map
+              marker = world_map.objects.get(obj_id)
+              
+              if marker is None or not isinstance(marker, ArucoMarkerObj):
+                  print(f"No such ArUco marker in world_map: {obj_id}")
+                  super().start()
+                  self.post_failure()
+                  return
+
+              offset_dist = -150 
+              heading = self.robot.pose.theta 
+              theta = marker.pose.theta
+              offset_x = marker.pose.x - offset_dist * math.cos(theta)
+              offset_y = marker.pose.y - offset_dist * math.sin(theta)
+
+              offset_pose = Pose(offset_x, offset_y, theta=heading)
+              print(f"Piloting to offset pose near ArUco marker {obj_id}: {offset_pose}")
+              super().start(DataEvent(offset_pose))
 
         def setup(self):
-            #             StateNode() =T(0.5)=> pilot
-            #             pilot: CmdPilotToAruco()
+            #             Print("Enter CmdPilotToAruco") =T(2)=> pilot
+            #             pilot: self.GoToAruco()
+            #             pilot =F=> ParentFails()
+            #             pilot =C=> ParentCompletes()
+            #             pilot =PILOT=> ParentPilotEvent()
             
-            # Code generated by genfsm on Wed Apr 23 15:14:10 2025:
+            # Code generated by genfsm on Wed Apr 23 17:02:44 2025:
             
-            statenode1 = StateNode() .set_name("statenode1") .set_parent(self)
-            pilot = CmdPilotToAruco() .set_name("pilot") .set_parent(self)
+            print1 = Print("Enter CmdPilotToAruco") .set_name("print1") .set_parent(self)
+            pilot = self.GoToAruco() .set_name("pilot") .set_parent(self)
+            parentfails1 = ParentFails() .set_name("parentfails1") .set_parent(self)
+            parentcompletes1 = ParentCompletes() .set_name("parentcompletes1") .set_parent(self)
+            parentpilotevent1 = ParentPilotEvent() .set_name("parentpilotevent1") .set_parent(self)
             
-            timertrans1 = TimerTrans(0.5) .set_name("timertrans1")
-            timertrans1 .add_sources(statenode1) .add_destinations(pilot)
+            timertrans1 = TimerTrans(2) .set_name("timertrans1")
+            timertrans1 .add_sources(print1) .add_destinations(pilot)
+            
+            failuretrans1 = FailureTrans() .set_name("failuretrans1")
+            failuretrans1 .add_sources(pilot) .add_destinations(parentfails1)
+            
+            completiontrans1 = CompletionTrans() .set_name("completiontrans1")
+            completiontrans1 .add_sources(pilot) .add_destinations(parentcompletes1)
+            
+            pilottrans1 = PilotTrans() .set_name("pilottrans1")
+            pilottrans1 .add_sources(pilot) .add_destinations(parentpilotevent1)
             
             return self
     
@@ -338,14 +359,14 @@ class MuseumGuide(StateMachineProgram):
         #       doorpass =CNext=> dispatch
         #       doorpass =F=> Say("Could not pass through that doorway.") =CNext=> dispatch
         # 
-        #       wait_then_aruco: self.WaitThenGotoAruco()
+        #       wait_then_aruco: self.CmdPilotToAruco()
         #       wait_then_aruco =CNext=> dispatch
         #       wait_then_aruco =F=> Say("Could not find that marker.") =CNext=> dispatch
         #       wait_then_aruco =PILOT(GoalUnreachable)=> Say("That marker is unreachable.") =CNext=> dispatch
         # 
         # 
         
-        # Code generated by genfsm on Wed Apr 23 15:14:10 2025:
+        # Code generated by genfsm on Wed Apr 23 17:02:44 2025:
         
         say1 = Say("Welcome to Tepper Museum! I am your personal guide today, what can I help you?") .set_name("say1") .set_parent(self)
         loop = StateNode() .set_name("loop") .set_parent(self)
@@ -361,19 +382,19 @@ class MuseumGuide(StateMachineProgram):
         cmdglow1 = self.CmdGlow() .set_name("cmdglow1") .set_parent(self)
         cmdsendcamera1 = self.CmdSendCamera() .set_name("cmdsendcamera1") .set_parent(self)
         askgpt2 = AskGPT("Please respond to the query using the camera image.") .set_name("askgpt2") .set_parent(self)
-        print1 = Print() .set_name("print1") .set_parent(self)
+        print2 = Print() .set_name("print2") .set_parent(self)
         turntoward = self.CmdTurnToward() .set_name("turntoward") .set_parent(self)
-        statenode2 = StateNode() .set_name("statenode2") .set_parent(self)
+        statenode1 = StateNode() .set_name("statenode1") .set_parent(self)
         pickup = self.CmdPickup() .set_name("pickup") .set_parent(self)
-        statenode3 = StateNode() .set_name("statenode3") .set_parent(self)
+        statenode2 = StateNode() .set_name("statenode2") .set_parent(self)
         doorpass = self.CmdDoorPass() .set_name("doorpass") .set_parent(self)
         say2 = Say("Could not pass through that doorway.") .set_name("say2") .set_parent(self)
-        wait_then_aruco = self.WaitThenGotoAruco() .set_name("wait_then_aruco") .set_parent(self)
+        wait_then_aruco = self.CmdPilotToAruco() .set_name("wait_then_aruco") .set_parent(self)
         say3 = Say("Could not find that marker.") .set_name("say3") .set_parent(self)
         say4 = Say("That marker is unreachable.") .set_name("say4") .set_parent(self)
         
-        completiontrans1 = CompletionTrans() .set_name("completiontrans1")
-        completiontrans1 .add_sources(say1) .add_destinations(loop)
+        completiontrans2 = CompletionTrans() .set_name("completiontrans2")
+        completiontrans2 .add_sources(say1) .add_destinations(loop)
         
         heartrans1 = HearTrans() .set_name("heartrans1")
         heartrans1 .add_sources(loop) .add_destinations(askgpt1)
@@ -387,8 +408,8 @@ class MuseumGuide(StateMachineProgram):
         datatrans2 = DataTrans(str) .set_name("datatrans2")
         datatrans2 .add_sources(check) .add_destinations(speakresponse1)
         
-        completiontrans2 = CompletionTrans() .set_name("completiontrans2")
-        completiontrans2 .add_sources(speakresponse1) .add_destinations(loop)
+        completiontrans3 = CompletionTrans() .set_name("completiontrans3")
+        completiontrans3 .add_sources(speakresponse1) .add_destinations(loop)
         
         datatrans3 = DataTrans(re.compile('#say ')) .set_name("datatrans3")
         datatrans3 .add_sources(dispatch) .add_destinations(cmdsay1)
@@ -441,44 +462,44 @@ class MuseumGuide(StateMachineProgram):
         datatrans13 = DataTrans(re.compile('#camera$')) .set_name("datatrans13")
         datatrans13 .add_sources(dispatch) .add_destinations(cmdsendcamera1)
         
-        completiontrans3 = CompletionTrans() .set_name("completiontrans3")
-        completiontrans3 .add_sources(cmdsendcamera1) .add_destinations(askgpt2)
+        completiontrans4 = CompletionTrans() .set_name("completiontrans4")
+        completiontrans4 .add_sources(cmdsendcamera1) .add_destinations(askgpt2)
         
         openaitrans2 = OpenAITrans() .set_name("openaitrans2")
         openaitrans2 .add_sources(askgpt2) .add_destinations(check)
         
         datatrans14 = DataTrans() .set_name("datatrans14")
-        datatrans14 .add_sources(dispatch) .add_destinations(print1)
+        datatrans14 .add_sources(dispatch) .add_destinations(print2)
         
         nexttrans1 = NextTrans() .set_name("nexttrans1")
-        nexttrans1 .add_sources(print1) .add_destinations(dispatch)
+        nexttrans1 .add_sources(print2) .add_destinations(dispatch)
         
-        completiontrans4 = CompletionTrans() .set_name("completiontrans4")
-        completiontrans4 .add_sources(dispatch) .add_destinations(loop)
+        completiontrans5 = CompletionTrans() .set_name("completiontrans5")
+        completiontrans5 .add_sources(dispatch) .add_destinations(loop)
         
         cnexttrans7 = CNextTrans() .set_name("cnexttrans7")
         cnexttrans7 .add_sources(turntoward) .add_destinations(dispatch)
         
-        failuretrans1 = FailureTrans() .set_name("failuretrans1")
-        failuretrans1 .add_sources(turntoward) .add_destinations(statenode2)
+        failuretrans2 = FailureTrans() .set_name("failuretrans2")
+        failuretrans2 .add_sources(turntoward) .add_destinations(statenode1)
         
         nexttrans2 = NextTrans() .set_name("nexttrans2")
-        nexttrans2 .add_sources(statenode2) .add_destinations(dispatch)
+        nexttrans2 .add_sources(statenode1) .add_destinations(dispatch)
         
         cnexttrans8 = CNextTrans() .set_name("cnexttrans8")
         cnexttrans8 .add_sources(pickup) .add_destinations(dispatch)
         
-        failuretrans2 = FailureTrans() .set_name("failuretrans2")
-        failuretrans2 .add_sources(pickup) .add_destinations(statenode3)
+        failuretrans3 = FailureTrans() .set_name("failuretrans3")
+        failuretrans3 .add_sources(pickup) .add_destinations(statenode2)
         
         nexttrans3 = NextTrans() .set_name("nexttrans3")
-        nexttrans3 .add_sources(statenode3) .add_destinations(dispatch)
+        nexttrans3 .add_sources(statenode2) .add_destinations(dispatch)
         
         cnexttrans9 = CNextTrans() .set_name("cnexttrans9")
         cnexttrans9 .add_sources(doorpass) .add_destinations(dispatch)
         
-        failuretrans3 = FailureTrans() .set_name("failuretrans3")
-        failuretrans3 .add_sources(doorpass) .add_destinations(say2)
+        failuretrans4 = FailureTrans() .set_name("failuretrans4")
+        failuretrans4 .add_sources(doorpass) .add_destinations(say2)
         
         cnexttrans10 = CNextTrans() .set_name("cnexttrans10")
         cnexttrans10 .add_sources(say2) .add_destinations(dispatch)
@@ -486,14 +507,14 @@ class MuseumGuide(StateMachineProgram):
         cnexttrans11 = CNextTrans() .set_name("cnexttrans11")
         cnexttrans11 .add_sources(wait_then_aruco) .add_destinations(dispatch)
         
-        failuretrans4 = FailureTrans() .set_name("failuretrans4")
-        failuretrans4 .add_sources(wait_then_aruco) .add_destinations(say3)
+        failuretrans5 = FailureTrans() .set_name("failuretrans5")
+        failuretrans5 .add_sources(wait_then_aruco) .add_destinations(say3)
         
         cnexttrans12 = CNextTrans() .set_name("cnexttrans12")
         cnexttrans12 .add_sources(say3) .add_destinations(dispatch)
         
-        pilottrans1 = PilotTrans(GoalUnreachable) .set_name("pilottrans1")
-        pilottrans1 .add_sources(wait_then_aruco) .add_destinations(say4)
+        pilottrans2 = PilotTrans(GoalUnreachable) .set_name("pilottrans2")
+        pilottrans2 .add_sources(wait_then_aruco) .add_destinations(say4)
         
         cnexttrans13 = CNextTrans() .set_name("cnexttrans13")
         cnexttrans13 .add_sources(say4) .add_destinations(dispatch)

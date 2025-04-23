@@ -57,54 +57,60 @@ Follow the flow sequentially one step at a time using the numbering system liste
   
     - # Execute the scanning sequence for selected_flow:
           IF selected_flow == Left-to-Right Flow:
-            #turn 75  
+            #turn 60  
             then issue: #pilottoaruco N (leftmost aruco marker in whichever gallery)
-            then issue: #turn 10    
+            then issue: #sideway 45  
+            then output the string '#camera" without quotes and respond which painting it is 
+            then search generate, and say an introduction to this painting's background and techniques as if you are a tour guide. 
+            then output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
+            then issue: #sideways 140
             then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
             After describing the painting, output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
-            then issue: #sideways {test_distance} 
-            then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
-            After describing the painting, output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
-            then issue: #turn {test_angle} 
-            then issue: #sideways {test_distance} 
-            then issue: #turn {test_angle} 
-            then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
-            After describing the painting, output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
-            then issue: #sideways {test_distance} 
-            then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
-            After describing the painting, output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "we have completed the tour for this gallery".  
-            then issue: #forward -{test_distance}. Move on to step 5.
+            then issue: #turn -90
+            then issue: #sideways 140
+            then issue: #forward 50 
+            then output the string '#camera" without quotes and respond which painting it is 
+            then search generate, and say an introduction to this painting's background and techniques as if you are a tour guide. 
+            then output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
+            then issue: #sideways 125 
+            then output the string '#camera" without quotes and respond which painting it is 
+            then search generate, and say an introduction to this painting's background and techniques as if you are a tour guide. 
+            then output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "we have completed the tour for this gallery".
+            then issue: #forward -300. Move on to step 5.
           IF selected_flow == Right-to-Left Flow:
-            #turn -75
+            #turn -60
             then issue: #pilottoaruco N (rightmost aruco marker in whichever gallery)
             then issue: #turn 10 
-            then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
-            After describing the painting, output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
-            then issue: #sideways {test_distance} 
-            then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
-            After describing the painting, output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
-            then issue: #turn {test_angle} 
-            then issue: #sideways {test_distance} 
-            then issue: #turn {test_angle} 
-            then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
-            After describing the painting, output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
-            then issue: #sideways {test_distance} 
-            then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
-            After describing the painting, output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "we have completed the tour for this gallery".  
-            then issue: #forward -{test_distance}. Proceed to step 5.
+            then output the string '#camera" without quotes and respond which painting it is 
+            then search generate, and say an introduction to this painting's background and techniques as if you are a tour guide. 
+            then output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting".  
+            then issue: #sideways 145
+            then output the string '#camera" without quotes and respond which painting it is 
+            then search generate, and say an introduction to this painting's background and techniques as if you are a tour guide. 
+            then output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting".  
+            then issue: #turn 90 
+            then issue: #sideways 140
+            then issue: #forward 50 
+            then output the string '#camera" without quotes and respond which painting it is 
+            then search generate, and say an introduction to this painting's background and techniques as if you are a tour guide. 
+            then output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting".  
+            then issue: #sideways 135
+            then output the string '#camera" without quotes and respond which painting it is 
+            then search generate, and say an introduction to this painting's background and techniques as if you are a tour guide. 
+            then output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "we have completed the tour for this gallery".  
+            then issue: #forward -300. Proceed to step 5.
               
    - If in Classic and (P == "middleright" or P == "rightmost"):  
-       #turn -75  
+       #turn -60 
    - If in Modern and (P == "leftmost" or P == "middleleft"):  
-       #turn 75  
+       #turn 60  
    - then issue:  
        #pilottoaruco N  
    - then issue:
       #turn 10    
+   - then output the string '#camera" without quotes and respond which painting it is 
+   - then search generate, and say an introduction to this painting's background and techniques as if you are a tour guide. 
    - then issue:
-       #camera without quotes
-       From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
-   - After describing the painting, output:
       #say "do you have further questions about this painting?", answer any trival questions about this painting. If not,   
    - then issue:
       #turn -10
@@ -244,43 +250,52 @@ class MuseumGuide(StateMachineProgram):
             doorway_name = tokens[1]
             print(f"Attempting to pass through doorway: {doorway_name}")
             super().start(DataEvent(doorway_name))
-    
-    class CmdPilotToAruco(PilotToPose):
-        def start(self, event):
-            tokens = event.data.split()
-            if len(tokens) < 2:
-                print("No marker ID after '#pilottoaruco'")
-                self.post_failure()
-                return
 
-            arg = tokens[1]
-            obj_id = f"ArucoMarker-{arg}.a" if not arg.startswith("ArucoMarker-") else arg
-            world_map = self.robot.world_map
-            marker = world_map.objects.get(obj_id)
-            
-            if marker is None or not isinstance(marker, ArucoMarkerObj):
-                print(f"No such ArUco marker in world_map: {obj_id}")
-                self.post_failure()
-                return
-
-            offset_dist = -150 
-            heading = self.robot.pose.theta 
-            theta = marker.pose.theta
-            offset_x = marker.pose.x - offset_dist * math.cos(theta)
-            offset_y = marker.pose.y - offset_dist * math.sin(theta)
-
-            offset_pose = Pose(offset_x, offset_y, theta=heading)
-            print(f"Piloting to offset pose near ArUco marker {obj_id}: {offset_pose}")
-            super().start(DataEvent(offset_pose))
-
-    class WaitThenGotoAruco(StateNode):
+    class CmdPilotToAruco(StateNode):
         def start(self, event):
             self.saved_data = event.data
+            print(event.data)
             super().start(event)
+            
+        class GoToAruco(PilotToPose):
+          def start(self, event=None):
+              saved_data = self.parent.saved_data
+              print("started go to aruco")
+              tokens = saved_data.split()
+              
+              if len(tokens) < 2:
+                  print("No marker ID after '#pilottoaruco'")
+                  super().start()
+                  self.post_failure()
+                  return
+
+              arg = tokens[1]
+              obj_id = f"ArucoMarker-{arg}.a" if not arg.startswith("ArucoMarker-") else arg
+              world_map = self.robot.world_map
+              marker = world_map.objects.get(obj_id)
+              
+              if marker is None or not isinstance(marker, ArucoMarkerObj):
+                  print(f"No such ArUco marker in world_map: {obj_id}")
+                  super().start()
+                  self.post_failure()
+                  return
+
+              offset_dist = -150 
+              heading = self.robot.pose.theta 
+              theta = marker.pose.theta
+              offset_x = marker.pose.x - offset_dist * math.cos(theta)
+              offset_y = marker.pose.y - offset_dist * math.sin(theta)
+
+              offset_pose = Pose(offset_x, offset_y, theta=heading)
+              print(f"Piloting to offset pose near ArUco marker {obj_id}: {offset_pose}")
+              super().start(DataEvent(offset_pose))
 
         $setup{
-            StateNode() =T(0.5)=> pilot
-            pilot: CmdPilotToAruco()
+            Print("Enter CmdPilotToAruco") =T(2)=> pilot
+            pilot: self.GoToAruco()
+            pilot =F=> ParentFails()
+            pilot =C=> ParentCompletes()
+            pilot =PILOT=> ParentPilotEvent()
         }
     
     class SpeakResponse(Say):
@@ -329,7 +344,7 @@ class MuseumGuide(StateMachineProgram):
       doorpass =CNext=> dispatch
       doorpass =F=> Say("Could not pass through that doorway.") =CNext=> dispatch
 
-      wait_then_aruco: self.WaitThenGotoAruco()
+      wait_then_aruco: self.CmdPilotToAruco()
       wait_then_aruco =CNext=> dispatch
       wait_then_aruco =F=> Say("Could not find that marker.") =CNext=> dispatch
       wait_then_aruco =PILOT(GoalUnreachable)=> Say("That marker is unreachable.") =CNext=> dispatch
