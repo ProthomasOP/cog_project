@@ -48,13 +48,55 @@ Follow the flow sequentially one step at a time using the numbering system liste
 
 4. When the visitor names a position P:  
    - Look up the internal mapping to find marker number N.  
+   - If in Classic and (P == "all"):
+      - If entering from the Modern gallery (through Doorway {OTHER_GALLERY_DOOR_NUMBER}), the robot moves left-to-right along the front and left walls, this would be the left-to-right flow logic explained below.
+      - If entering from the main entrance (through Doorway-1:0.a), the robot moves right-to-left along the front and right walls, this would be the right-to-left flow logic explained below.
+   - If in Modern and (P == "all"):
+      - If entering from the Classic gallery (through Doorway {OTHER_GALLERY_DOOR_NUMBER}), the robot moves right-to-left along the front and right walls, this would be the right-to-left flow logic explained below.
+      - If entering from the main entrance (through Doorway-12:d1.a), the robot moves left-to-right along the front and left walls, this would be the left-to-right flow logic explained below.
+  
+    - # Execute the scanning sequence for selected_flow:
+          IF selected_flow == Left-to-Right Flow:
+            #turn 75  
+            then issue: #pilottoaruco N (leftmost aruco marker in whichever gallery)
+            then issue: #turn 10    
+            then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
+            After describing the painting, output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
+            then issue: #sideways {test_distance} 
+            then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
+            After describing the painting, output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
+            then issue: #turn {test_angle} 
+            then issue: #sideways {test_distance} 
+            then issue: #turn {test_angle} 
+            then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
+            After describing the painting, output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
+            then issue: #sideways {test_distance} 
+            then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
+            After describing the painting, output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "we have completed the tour for this gallery".  
+            then issue: #forward -{test_distance}. Move on to step 5.
+          IF selected_flow == Right-to-Left Flow:
+            #turn -75
+            then issue: #pilottoaruco N (rightmost aruco marker in whichever gallery)
+            then issue: #turn 10 
+            then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
+            After describing the painting, output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
+            then issue: #sideways {test_distance} 
+            then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
+            After describing the painting, output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
+            then issue: #turn {test_angle} 
+            then issue: #sideways {test_distance} 
+            then issue: #turn {test_angle} 
+            then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
+            After describing the painting, output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
+            then issue: #sideways {test_distance} 
+            then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
+            After describing the painting, output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "we have completed the tour for this gallery".  
+            then issue: #forward -{test_distance}. Proceed to step 5.
+              
    - If in Classic and (P == "middleright" or P == "rightmost"):  
-       #turn -80  
+       #turn -75  
    - If in Modern and (P == "leftmost" or P == "middleleft"):  
-       #turn 80  
-   - then issue:
-       #wait 500
-       #say"Ok, this is a good choice"
+       #turn 75  
    - then issue:  
        #pilottoaruco N  
    - then issue:
@@ -63,15 +105,17 @@ Follow the flow sequentially one step at a time using the numbering system liste
        #camera without quotes
        From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
    - After describing the painting, output:
-      #say "do you have further questions about this painting?"    
-   - if no, return to original orientation:  
-       If in Classic and (P == "middleright" or P == "rightmost"):  
-           #turn 80  
-       If in Modern and (P == "leftmost" or P == "middleleft"):  
-           #turn -80
+      #say "do you have further questions about this painting?", answer any trival questions about this painting. If not,   
+   - then issue:
+      #turn -10
+      #forward -100 
+      If in Classic and (P == "middleright" or P == "rightmost"):  
+          #turn 80  
+      If in Modern and (P == "leftmost" or P == "middleleft"):  
+          #turn -80
 
 5. Then ask:  
-   "Would you like another painting in this gallery, move to the other gallery, or end the tour?"  
+   "Would you like to check out the painting in this gallery, move to the other gallery, or end the tour?"  
 
    - Another painting:  
      Repeat step 4 for the current gallery.  
@@ -84,7 +128,7 @@ Follow the flow sequentially one step at a time using the numbering system liste
      - Then issue:  
        #doorpass {OTHER_GALLERY_DOOR_NUMBER}  
      - Then say:  
-       "This new gallery has four paintings. Which would you like to see: leftmost, middleleft, middleright, or rightmost?"
+       "This new gallery has four paintings. Which would you like to see: leftmost, middleleft, middleright, rightmost, or all?"
      - Proceed to step 4.
 
    - End the tour:  
@@ -108,9 +152,6 @@ Always be concise and natural in your speech.
 Ask one question at a time, wait for the visitor's reply, then execute the next command.  
 """
 
-
-
-
 class MuseumGuide(StateMachineProgram):
 
     class CheckResponse(StateNode):
@@ -127,7 +168,7 @@ class MuseumGuide(StateMachineProgram):
             # else response is a pure string so just speak it in one gulp
             else:
                 self.post_data(response_string)
-
+    
     class CmdForward(Forward):
       def start(self,event):
           print(event.data)
@@ -171,23 +212,6 @@ class MuseumGuide(StateMachineProgram):
         def start(self,event):
             print(event.data)
             super().start(event)
-    
-    class CmdWait(StateNode):
-      def start(self, event):
-          super().start(event)
-          tokens = event.data.split()
-          if len(tokens) < 2:
-              print("No duration provided for #wait command.")
-              self.post_failure()
-              return
-          try:
-              duration_ms = int(tokens[1])
-              print(f"Waiting for {duration_ms} milliseconds.")
-              time.sleep(duration_ms / 1000.0)
-              self.post_completion()
-          except ValueError:
-              print("Invalid duration for #wait command.")
-              self.post_failure()
 
     class CmdSay(Say):
         def start(self,event):
@@ -220,8 +244,7 @@ class MuseumGuide(StateMachineProgram):
             doorway_name = tokens[1]
             print(f"Attempting to pass through doorway: {doorway_name}")
             super().start(DataEvent(doorway_name))
-
-
+    
     class CmdPilotToAruco(PilotToPose):
         def start(self, event):
             tokens = event.data.split()
@@ -229,7 +252,7 @@ class MuseumGuide(StateMachineProgram):
                 print("No marker ID after '#pilottoaruco'")
                 self.post_failure()
                 return
-            
+
             arg = tokens[1]
             obj_id = f"ArucoMarker-{arg}.a" if not arg.startswith("ArucoMarker-") else arg
             world_map = self.robot.world_map
@@ -250,6 +273,16 @@ class MuseumGuide(StateMachineProgram):
             print(f"Piloting to offset pose near ArUco marker {obj_id}: {offset_pose}")
             super().start(DataEvent(offset_pose))
 
+    class WaitThenGotoAruco(StateNode):
+        def start(self, event):
+            self.saved_data = event.data
+            super().start(event)
+
+        $setup{
+            StateNode() =T(0.5)=> pilot
+            pilot: CmdPilotToAruco()
+        }
+    
     class SpeakResponse(Say):
       def start(self,event):
         self.text = event.data
@@ -278,10 +311,9 @@ class MuseumGuide(StateMachineProgram):
       dispatch =D(re.compile('#pickup '))=> pickup
       dispatch =D(re.compile('#glow '))=> self.CmdGlow() =CNext=> dispatch
       dispatch =D(re.compile('#doorpass '))=> doorpass  
-      dispatch =D(re.compile('#pilottoaruco '))=> goto_aruco
+      dispatch =D(re.compile('#pilottoaruco '))=> wait_then_aruco
       dispatch =D(re.compile('#camera$'))=> self.CmdSendCamera() =C=>
         AskGPT("Please respond to the query using the camera image.") =OpenAITrans()=> check
-      dispatch =D(re.compile('#wait '))=> self.CmdWait() =CNext=> dispatch
       dispatch =D()=> Print() =Next=> dispatch
       dispatch =C=> loop
 
@@ -297,9 +329,10 @@ class MuseumGuide(StateMachineProgram):
       doorpass =CNext=> dispatch
       doorpass =F=> Say("Could not pass through that doorway.") =CNext=> dispatch
 
-      goto_aruco: self.CmdPilotToAruco()
-      goto_aruco =CNext=> dispatch
-      goto_aruco =F=> Say("Could not find that marker.") =CNext=> dispatch
-      goto_aruco =PILOT(GoalUnreachable)=> Say("That marker is unreachable.") =CNext=> dispatch
+      wait_then_aruco: self.WaitThenGotoAruco()
+      wait_then_aruco =CNext=> dispatch
+      wait_then_aruco =F=> Say("Could not find that marker.") =CNext=> dispatch
+      wait_then_aruco =PILOT(GoalUnreachable)=> Say("That marker is unreachable.") =CNext=> dispatch
+
 
       }
