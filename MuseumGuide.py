@@ -49,14 +49,54 @@ Follow the flow sequentially one step at a time using the numbering system liste
 4. When the visitor names a position P:  
    - Look up the internal mapping to find marker number N.  
    - If in Classic and (P == "all"):
-
+      - If entering from the Modern gallery (through Doorway {OTHER_GALLERY_DOOR_NUMBER}), the robot moves left-to-right along the front and left walls, this would be the left-to-right flow logic explained below.
+      - If entering from the main entrance (through Doorway-1:0.a), the robot moves right-to-left along the front and right walls, this would be the right-to-left flow logic explained below.
    - If in Modern and (P == "all"):
-      
-
+      - If entering from the Classic gallery (through Doorway {OTHER_GALLERY_DOOR_NUMBER}), the robot moves right-to-left along the front and right walls, this would be the right-to-left flow logic explained below.
+      - If entering from the main entrance (through Doorway-12:d1.a), the robot moves left-to-right along the front and left walls, this would be the left-to-right flow logic explained below.
+  
+    - # Execute the scanning sequence for selected_flow:
+          IF selected_flow == Left-to-Right Flow:
+            #turn 75  
+            then issue: #pilottoaruco N (leftmost aruco marker in whichever gallery)
+            then issue: #turn 10    
+            then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
+            After describing the painting, output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
+            then issue: #sideways {test_distance} 
+            then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
+            After describing the painting, output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
+            then issue: #turn {test_angle} 
+            then issue: #sideways {test_distance} 
+            then issue: #turn {test_angle} 
+            then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
+            After describing the painting, output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
+            then issue: #sideways {test_distance} 
+            then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
+            After describing the painting, output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "we have completed the tour for this gallery".  
+            then issue: #forward -{test_distance}. Move on to step 5.
+          IF selected_flow == Right-to-Left Flow:
+            #turn -75
+            then issue: #pilottoaruco N (rightmost aruco marker in whichever gallery)
+            then issue: #turn 10 
+            then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
+            After describing the painting, output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
+            then issue: #sideways {test_distance} 
+            then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
+            After describing the painting, output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
+            then issue: #turn {test_angle} 
+            then issue: #sideways {test_distance} 
+            then issue: #turn {test_angle} 
+            then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
+            After describing the painting, output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
+            then issue: #sideways {test_distance} 
+            then issue: #camera without quotes. From the camera image, identify a famous painting on the camera image, say a description of this painting out loud.
+            After describing the painting, output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "we have completed the tour for this gallery".  
+            then issue: #forward -{test_distance}. Proceed to step 5.
+              
    - If in Classic and (P == "middleright" or P == "rightmost"):  
-       #turn -80  
+       #turn -75  
    - If in Modern and (P == "leftmost" or P == "middleleft"):  
-       #turn 80  
+       #turn 75  
    - then issue:  
        #pilottoaruco N  
    - then issue:
@@ -75,7 +115,7 @@ Follow the flow sequentially one step at a time using the numbering system liste
           #turn -80
 
 5. Then ask:  
-   "Would you like another painting in this gallery, move to the other gallery, or end the tour?"  
+   "Would you like to check out the painting in this gallery, move to the other gallery, or end the tour?"  
 
    - Another painting:  
      Repeat step 4 for the current gallery.  
@@ -88,7 +128,7 @@ Follow the flow sequentially one step at a time using the numbering system liste
      - Then issue:  
        #doorpass {OTHER_GALLERY_DOOR_NUMBER}  
      - Then say:  
-       "This new gallery has four paintings. Which would you like to see: leftmost, middleleft, middleright, or rightmost?"
+       "This new gallery has four paintings. Which would you like to see: leftmost, middleleft, middleright, rightmost, or all?"
      - Proceed to step 4.
 
    - End the tour:  
@@ -242,7 +282,7 @@ class MuseumGuide(StateMachineProgram):
             #             StateNode() =T(0.5)=> pilot
             #             pilot: CmdPilotToAruco()
             
-            # Code generated by genfsm on Tue Apr 22 23:19:34 2025:
+            # Code generated by genfsm on Wed Apr 23 15:14:10 2025:
             
             statenode1 = StateNode() .set_name("statenode1") .set_parent(self)
             pilot = CmdPilotToAruco() .set_name("pilot") .set_parent(self)
@@ -305,7 +345,7 @@ class MuseumGuide(StateMachineProgram):
         # 
         # 
         
-        # Code generated by genfsm on Tue Apr 22 23:19:34 2025:
+        # Code generated by genfsm on Wed Apr 23 15:14:10 2025:
         
         say1 = Say("Welcome to Tepper Museum! I am your personal guide today, what can I help you?") .set_name("say1") .set_parent(self)
         loop = StateNode() .set_name("loop") .set_parent(self)
