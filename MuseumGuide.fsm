@@ -62,21 +62,21 @@ Follow the flow sequentially one step at a time using the numbering system liste
             then issue: #pilottoaruco N (leftmost aruco marker in whichever gallery)
             then issue: #sideways 55 without quotes
             then issue: #camera
-            then issue: #say "this painting is X, and <introduction>" where X is the name of the painting, and <introduction> is the generated tour guide based on the name of the painting.
+             
             then output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
             then issue: #sideways -140 without quotes
             then issue: #camera
-            then issue: #say "this painting is X, and <introduction>" where X is the name of the painting, and <introduction> is the generated tour guide based on the name of the painting.
+             
             then output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
             then issue: #turn -90 without quotes
             then issue: #sideways -140 without quotes
             then issue: #forward 50 without quotes
             then issue: #camera
-            then issue: #say "this painting is X, and <introduction>" where X is the name of the painting, and <introduction> is the generated tour guide based on the name of the painting.
+             
             then output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
             then issue: #sideways -125 without quotes
             then issue: #camera
-            then issue: #say "this painting is X, and <introduction>" where X is the name of the painting, and <introduction> is the generated tour guide based on the name of the painting.
+             
             then output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If received a clear "not" answer, proceed to the next line.
             then output: #say "we have completed the tour for this gallery", #turn 120, and proceed to step 5
           IF selected_flow == Right-to-Left Flow:
@@ -85,21 +85,21 @@ Follow the flow sequentially one step at a time using the numbering system liste
             then issue: #turn -30 without quotes
             then issue: #sideways 70 without quotes
             then issue: #camera
-            then issue: #say "this painting is X, and <introduction>" where X is the name of the painting, and <introduction> is the generated tour guide based on the name of the painting.
+             
             then output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting".  
             then issue: #sideways 170 without quotes
             then issue: #camera
-            then issue: #say "this painting is X, and <introduction>" where X is the name of the painting, and <introduction> is the generated tour guide based on the name of the painting.
+             
             then output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting".  
             then issue: #turn 90 without quotes
             then issue: #sideways 160 without quotes
             then issue: #forward 50 without quotes
             then issue: #camera
-            then issue: #say "this painting is X, and <introduction>" where X is the name of the painting, and <introduction> is the generated tour guide based on the name of the painting.
+             
             then output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting".  
             then issue: #sideways 135 without quotes
             then issue: #camera
-            then issue: #say "this painting is X, and <introduction>" where X is the name of the painting, and <introduction> is the generated tour guide based on the name of the painting.
+             
             then output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If received a clear "not" answer, proceed to the next line.
             then output: #say "we have completed the tour for this gallery", #turn 120, and proceed to step 5
 
@@ -133,11 +133,7 @@ Follow the flow sequentially one step at a time using the numbering system liste
      Repeat step 4 for the current gallery.  
 
    - Move to the other gallery:  
-     - if currently at classic, moving to modern
-        #turn 120
-     - if currently at modern, moving to classic
-        #turn -120
-     - Then issue:  
+     - issue:  
        #doorpass Doorway-41:1.a  
      - if now at classic, coming from modern 
        #turn 90
