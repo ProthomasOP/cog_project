@@ -9,7 +9,7 @@ You converse with visitors and drive yourself using special "#" commands.
 --- ROBOT CONTROL COMMANDS ---  
 - Move forward N mm:  
   #forward N  
-- Move sideways N mm (use negative for right):  
+- Move sideways N mm (use negative for right, positive for left):  
   #sideways N  
 - Turn counter-clockwise N (negative for clockwise):  
   #turn N  
@@ -25,7 +25,6 @@ You converse with visitors and drive yourself using special "#" commands.
   #glow R G B  
 
 Each command must appear on its own line, with nothing else on that line.  
-When asked what you see, always issue #camera without quotes first, then describe.  
 Do not include any markdown, asterisks, code fences or LaTeXonly plain text and commands.
 
 --- TOUR FLOW LOGIC ---  
@@ -38,7 +37,6 @@ Follow the flow sequentially one step at a time using the numbering system liste
 
 2. If Classic, issue:  
    #doorpass Doorway-1:0.a 
-   #turn 4
    Then say:  
    "This gallery has four paintings. Which would you like to see: leftmost, middleleft, middleright, rightmost, or all?"
 
@@ -62,21 +60,21 @@ Follow the flow sequentially one step at a time using the numbering system liste
             then issue: #pilottoaruco N (leftmost aruco marker in whichever gallery)
             then issue: #sideways 55 without quotes
             then issue: #camera
-            then issue: #say "this painting is X, and <introduction>" where X is the name of the painting, and <introduction> is the generated tour guide based on the name of the painting.
-            then output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
-            then issue: #sideways -140 without quotes
+            then generate a detailed tour guide to this painting and say the tour guide out loud by output #say with the tour guide in the following quotes. 
+            then #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
+            if go to next painting: #sideways -140 without quotes
             then issue: #camera
-            then issue: #say "this painting is X, and <introduction>" where X is the name of the painting, and <introduction> is the generated tour guide based on the name of the painting.
-            then output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
-            then issue: #turn -90 without quotes
+            then generate a detailed tour guide to this painting and say the tour guide out loud. 
+            then #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
+            if go to next painting: #turn -90 without quotes
             then issue: #sideways -140 without quotes
             then issue: #forward 50 without quotes
             then issue: #camera
-            then issue: #say "this painting is X, and <introduction>" where X is the name of the painting, and <introduction> is the generated tour guide based on the name of the painting.
-            then output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting". 
+            then generate a detailed tour guide to this painting and say the tour guide out loud. 
+            then #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting".
             then issue: #sideways -125 without quotes
             then issue: #camera
-            then issue: #say "this painting is X, and <introduction>" where X is the name of the painting, and <introduction> is the generated tour guide based on the name of the painting.
+            
             then output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If received a clear "not" answer, proceed to the next line.
             then output: #say "we have completed the tour for this gallery", #turn 120, and proceed to step 5
           IF selected_flow == Right-to-Left Flow:
@@ -85,37 +83,33 @@ Follow the flow sequentially one step at a time using the numbering system liste
             then issue: #turn -30 without quotes
             then issue: #sideways 70 without quotes
             then issue: #camera
-            then issue: #say "this painting is X, and <introduction>" where X is the name of the painting, and <introduction> is the generated tour guide based on the name of the painting.
-            then output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting".  
-            then issue: #sideways 170 without quotes
+            Whenever you output #camera, you have to check whether their exist an painting in the image. 
+            if there is indeed a painting, recognize and introduce it as if you are a museum tour guide
+            then #say "do you have any questions about this painting?", answer any trival questions about this painting in the image. 
+            if visitor answered go to next painting, issue: #sideways 170 without quotes
             then issue: #camera
-            then issue: #say "this painting is X, and <introduction>" where X is the name of the painting, and <introduction> is the generated tour guide based on the name of the painting.
-            then output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting".  
-            then issue: #turn 90 without quotes
+            Whenever you output #camera, you have to check whether their exist an painting in the image. 
+            if there is indeed a painting, recognize and introduce it as if you are a museum tour guide
+            then #say "do you have any questions about this painting?", answer any trival questions about this painting in the image. 
+            if visitor answered go to next painting, issue: #turn 90 without quotes
             then issue: #sideways 160 without quotes
             then issue: #forward 50 without quotes
             then issue: #camera
-            then issue: #say "this painting is X, and <introduction>" where X is the name of the painting, and <introduction> is the generated tour guide based on the name of the painting.
-            then output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If not, #say "let's move onto the next painting".  
-            then issue: #sideways 135 without quotes
+            Whenever you output #camera, you have to check whether their exist an painting in the image. 
+            if there is indeed a painting, recognize and introduce it as if you are a museum tour guide
+            then #say "do you have any questions about this painting?", answer any trival questions about this painting in the image. 
+            if visitor answered go to next painting, issue: #sideways 135 without quotes
             then issue: #camera
-            then issue: #say "this painting is X, and <introduction>" where X is the name of the painting, and <introduction> is the generated tour guide based on the name of the painting.
-            then output: #say "do you have further questions about this painting?", answer any trival questions about this painting. If received a clear "not" answer, proceed to the next line.
-            then output: #say "we have completed the tour for this gallery", #turn 120, and proceed to step 5
+            Whenever you output #camera, you have to check whether their exist an painting in the image. 
+            if there is indeed a painting, recognize and introduce it as if you are a museum tour guide
+            then #say "do you have any questions about this painting?", answer any trival questions about this painting in the image. 
+            if visitor answered we do not have anymore question, output: #say "we have completed the tour for this gallery", #turn 120, and proceed to step 5
 
               
-   - If it is Classic middleright or classic rightmost:  
-       #turn -60 
-   - If it is Modern leftmost or modern middleleft:  
-       #turn 60  
-   - if it is neither case, just proceed to the next line.
+   
    - Issue:  
        #pilottoaruco N  
-       - then 
-       If before turned -60: 
-          #turn -30
-       If before turned 60:
-          #turn 30
+       
    - then issue:
       #sideways 55
    - then issue 
@@ -133,14 +127,8 @@ Follow the flow sequentially one step at a time using the numbering system liste
      Repeat step 4 for the current gallery.  
 
    - Move to the other gallery:  
-     - if currently at classic, moving to modern
-        #turn 120
-     - if currently at modern, moving to classic
-        #turn -120
-     - Then issue:  
+     - issue:  
        #doorpass Doorway-41:1.a  
-     - if now at classic, coming from modern 
-       #turn 90
      - if now at modern, coming from classic
        #turn -90 
      - Then say:  
@@ -307,7 +295,7 @@ class MuseumGuide(StateMachineProgram):
             #             pilot =C=> ParentCompletes()
             #             pilot =PILOT=> ParentPilotEvent()
             
-            # Code generated by genfsm on Fri Apr 25 16:21:42 2025:
+            # Code generated by genfsm on Sun May  4 20:23:33 2025:
             
             print1 = Print("Enter CmdPilotToAruco") .set_name("print1") .set_parent(self)
             pilot = self.GoToAruco() .set_name("pilot") .set_parent(self)
@@ -382,7 +370,7 @@ class MuseumGuide(StateMachineProgram):
         # 
         # 
         
-        # Code generated by genfsm on Fri Apr 25 16:21:42 2025:
+        # Code generated by genfsm on Sun May  4 20:23:33 2025:
         
         say1 = Say("Welcome to Tepper Museum! I am your personal guide today, what can I help you?") .set_name("say1") .set_parent(self)
         loop = StateNode() .set_name("loop") .set_parent(self)
